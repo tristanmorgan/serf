@@ -453,11 +453,15 @@ func (c *Command) startAgent(config *Config, agent *Agent,
 		local := agent.Serf().Memberlist().LocalNode()
 
 		// Get the bind interface if any
-		iface, _ := config.MDNSNetworkInterface()
+		iface, err := config.MDNSNetworkInterface()
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("Error binding to interface: %s", err))
+			return nil
+		}
 
-		c.logger.Printf("[INFO] agent: Starting mDNS listener on interface %s", iface.Name)
+		// c.logger.Printf("[INFO] agent: Starting mDNS listener on interface %s", iface.Name)
 
-		_, err := NewAgentMDNS(agent, logOutput, config.ReplayOnJoin,
+		_, err = NewAgentMDNS(agent, logOutput, config.ReplayOnJoin,
 			config.NodeName, config.Discover, iface, local.Addr, int(local.Port), config.MDNS)
 		if err != nil {
 			c.Ui.Error(fmt.Sprintf("Error starting mDNS listener: %s", err))
